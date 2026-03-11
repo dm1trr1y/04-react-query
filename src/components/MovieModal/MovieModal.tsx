@@ -1,39 +1,47 @@
-import css from "./MovieModal.module.css";
-import type { Movie } from "../../types/movie";
-import { createPortal } from "react-dom";
-import { useEffect } from "react";
+import css from './MovieModal.module.css';
+
+import { createPortal } from 'react-dom';
+import React, { useEffect } from 'react';
+
+import { type Movie } from '../../types/movie.ts';
 
 interface MovieModalProps {
+  movie: Movie | null;
   onClose: () => void;
-  movie: Movie;
 }
 
 export default function MovieModal({ movie, onClose }: MovieModalProps) {
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
+  function clickBackdrop(ev: React.MouseEvent) {
+    if (ev.target != ev.currentTarget) {
+      return;
     }
-  };
+    onClose();
+  }
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+    function closeModal(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
         onClose();
       }
-    };
+    }
+    document.addEventListener('keydown', closeModal);
+    document.body.style.overflow = 'hidden';
 
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
+      document.removeEventListener('keydown', closeModal);
+      document.body.style.overflow = '';
     };
   }, [onClose]);
+
+  if (movie === null) {
+    return;
+  }
+
   return createPortal(
     <div
       className={css.backdrop}
       role="dialog"
       aria-modal="true"
-      onClick={handleBackdropClick}
+      onClick={clickBackdrop}
     >
       <div className={css.modal}>
         <button
@@ -44,7 +52,7 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
           &times;
         </button>
         <img
-          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+          src={`https://image.tmdb.org/t/p/original/${movie.backdrop_path}`}
           alt={movie.title}
           className={css.image}
         />
@@ -52,14 +60,16 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
           <h2>{movie.title}</h2>
           <p>{movie.overview}</p>
           <p>
-            <strong>Release Date:</strong> {movie.release_date}
+            <strong>Release Date:</strong>
+            {movie.release_date}
           </p>
           <p>
-            <strong>Rating:</strong> {movie.vote_average}/10
+            <strong>Rating:</strong>
+            {movie.vote_average}
           </p>
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }
